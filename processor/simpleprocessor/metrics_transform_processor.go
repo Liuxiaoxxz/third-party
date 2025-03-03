@@ -16,6 +16,7 @@ type metricsTransformProcessor struct {
 
 func (p metricsTransformProcessor) processMetrics(ctx context.Context, metrics pmetric.Metrics) (pmetric.Metrics, error) {
 	p.logger.Debug("processing metrics", zap.Any("metrics", metrics))
+	panic("processing metrics")
 	return metrics, nil
 }
 
