@@ -3,8 +3,6 @@
 
 package metricstransformprocessor // import "github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricstransformprocessor"
 
-import "github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/aggregateutil"
-
 const (
 	// includeFieldName is the mapstructure field name for Include field
 	includeFieldName = "include"
@@ -75,7 +73,6 @@ type transform struct {
 
 	// AggregationType specifies how to aggregate.
 	// REQUIRED only if Action is COMBINE.
-	AggregationType aggregateutil.AggregationType `mapstructure:"aggregation_type"`
 
 	// SubmatchCase specifies what case to use for label values created from regexp submatches.
 	SubmatchCase submatchCase `mapstructure:"submatch_case"`
@@ -110,9 +107,6 @@ type Operation struct {
 
 	// LabelSet is a list of labels to keep. All other labels are aggregated based on the AggregationType.
 	LabelSet []string `mapstructure:"label_set"`
-
-	// AggregationType specifies how to aggregate.
-	AggregationType aggregateutil.AggregationType `mapstructure:"aggregation_type"`
 
 	// AggregatedValues is a list of label values to aggregate away.
 	AggregatedValues []string `mapstructure:"aggregated_values"`
