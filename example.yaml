@@ -8,8 +8,11 @@ receivers:
       http:
         endpoint: 0.0.0.0:4318
 processors:
-  metricstransform:
-
+  metricstats:
+    interval: 1m
+    include: '^.*$$'
+    stats: [ "last" ]
+#  metricstransform:
 exporters:
     debug:
       verbosity: detailed
@@ -18,12 +21,14 @@ service:
   pipelines:
     metrics:
       receivers: [otlp]
-      processors: [metricstransform]
+      processors: [metricstats]
+#      processors: [metricstransform]
       exporters: [debug]
     metrics/prod:
       receivers: [otlp]
-      processors: [metricstransform]
+#      processors: [metricstransform]
+      processors: [metricstats]
       exporters: [debug]
-    traces/prod:
-      receivers: [otlp]
-      exporters: [debug]
+#    traces/prod:
+#      receivers: [otlp]
+#      exporters: [debug]

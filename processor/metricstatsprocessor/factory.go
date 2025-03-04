@@ -28,7 +28,7 @@ import (
 var componentType = component.MustNewType("metricstats")
 
 const (
-	stability = component.StabilityLevelAlpha
+	stability = component.StabilityLevelStable
 )
 
 // NewFactory creates a new ProcessorFactory with default configuration

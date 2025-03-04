@@ -50,6 +50,8 @@ type metricstatsProcessor struct {
 }
 
 func newStatsProcessor(logger *zap.Logger, cfg *Config, consumer consumer.Metrics) (*metricstatsProcessor, error) {
+	//fmt.Errorf("StatsProcessor starting ....")
+	logger.Info("StatsProcessor starting ....")
 	regex, err := regexp.Compile(cfg.Include)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compile include regex: %w", err)
@@ -236,6 +238,7 @@ func (sp *metricstatsProcessor) flush() {
 	sp.mux.Lock()
 	defer sp.mux.Unlock()
 
+	sp.logger.Debug("Flushing metric stats")
 	now := pcommon.NewTimestampFromTime(sp.now())
 	metrics := pmetric.NewMetrics()
 
