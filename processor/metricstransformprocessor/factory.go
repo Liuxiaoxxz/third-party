@@ -6,7 +6,6 @@ package metricstransformprocessor // import "github.com/open-telemetry/opentelem
 import (
 	"context"
 	"fmt"
-	"github.com/Liuxiaoxxz/third-party/internal/coreinternal/aggregateutil"
 	"github.com/Liuxiaoxxz/third-party/processor/metricstransformprocessor/internal/metadata"
 	"regexp"
 	"strings"
@@ -88,10 +87,6 @@ func validateConfiguration(config *Config) error {
 			return fmt.Errorf("missing required field %q while %q is %v", groupResourceLabelsFieldName, actionFieldName, Group)
 		}
 
-		if transform.AggregationType != "" && !transform.AggregationType.IsValid() {
-			return fmt.Errorf("%q must be in %q", aggregationTypeFieldName, aggregateutil.AggregationTypes)
-		}
-
 		if transform.SubmatchCase != "" && !transform.SubmatchCase.isValid() {
 			return fmt.Errorf("%q must be in %q", submatchCaseFieldName, submatchCases)
 		}
@@ -114,9 +109,6 @@ func validateConfiguration(config *Config) error {
 				return fmt.Errorf("operation %v: missing required field %q while %q is %v", i+1, scaleFieldName, actionFieldName, scaleValue)
 			}
 
-			if op.AggregationType != "" && !op.AggregationType.IsValid() {
-				return fmt.Errorf("operation %v: %q must be in %q", i+1, aggregationTypeFieldName, aggregateutil.AggregationTypes)
-			}
 		}
 	}
 	return nil
