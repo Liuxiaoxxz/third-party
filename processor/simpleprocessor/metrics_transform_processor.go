@@ -19,13 +19,15 @@ type metricsTransformProcessor struct {
 
 func (p metricsTransformProcessor) processMetrics(ctx context.Context, metrics pmetric.Metrics) (pmetric.Metrics, error) {
 	fmt.Sprintf("Processing metrics ")
-	p.logger.Info("Processing metrics", zap.Any("metrics", metrics))
+	p.logger.Debug("Processing metrics", zap.Any("metrics", metrics))
 	//p.logger.Error("processing metrics", zap.Any("metrics", metrics))
 	return metrics, nil
 }
 
 func newMetricsTransformProcessor(logger *zap.Logger) *metricsTransformProcessor {
+	logger.Debug("Creating new metrics transform processor")
 	return &metricsTransformProcessor{
-		logger: logger,
+		logger:                   logger,
+		otlpDataModelGateEnabled: false,
 	}
 }
