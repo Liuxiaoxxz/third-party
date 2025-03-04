@@ -14,9 +14,10 @@ type metricsTransformProcessor struct {
 	otlpDataModelGateEnabled bool
 }
 
+//type ConsumeMetricsFunc func(ctx context.Context, md pmetric.Metrics) error
+
 func (p metricsTransformProcessor) processMetrics(ctx context.Context, metrics pmetric.Metrics) (pmetric.Metrics, error) {
-	p.logger.Debug("processing metrics", zap.Any("metrics", metrics))
-	panic("processing metrics")
+	p.logger.Error("processing metrics", zap.Any("metrics", metrics))
 	return metrics, nil
 }
 
