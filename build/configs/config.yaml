@@ -1,0 +1,32 @@
+receivers:
+  k8s_events:
+processors:
+  cloudeventtransform:
+    ce:
+      append_type: com.hv.cloudevent.k8sevents
+      source: dev-chandrila
+    #filter: Created|Deleted
+    filter: "*"
+exporters:
+  kafka/event:
+    brokers: 
+      - knative-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092
+    topic: test-topic
+    protocol_version: 2.0.0
+    encoding: raw
+  cloudeventexporter:
+    ce:
+      append_type: com.hv.cloudevent.k8sevents
+      source: dev-chandrila
+    endpoint: "http://kafka-broker-ingress.knative-eventing.svc.cluster.local/default/kafka-broker"
+    filter: "*"
+service:
+  pipelines:
+    logs:
+      receivers:
+        - k8s_events
+      processors: []
+        #- cloudeventtransform
+      exporters: 
+        #- kafka/event
+        - cloudeventexporter
