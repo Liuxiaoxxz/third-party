@@ -1,0 +1,29 @@
+receivers:
+  # prometheusremotewrite:
+  #  endpoint: "0.0.0.0:8888"  # 监听地址和端
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+processors:
+  metricstransform:
+
+exporters:
+    debug:
+      verbosity: detailed
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [metricstransform]
+      exporters: [debug]
+    metrics/prod:
+      receivers: [otlp]
+      processors: [metricstransform]
+      exporters: [debug]
+    traces/prod:
+      receivers: [otlp]
+      exporters: [debug]

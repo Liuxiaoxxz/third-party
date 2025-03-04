@@ -5,6 +5,7 @@ package simpleprocessor // import "github.com/open-telemetry/opentelemetry-colle
 
 import (
 	"context"
+	"fmt"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.uber.org/zap"
 )
@@ -17,7 +18,9 @@ type metricsTransformProcessor struct {
 //type ConsumeMetricsFunc func(ctx context.Context, md pmetric.Metrics) error
 
 func (p metricsTransformProcessor) processMetrics(ctx context.Context, metrics pmetric.Metrics) (pmetric.Metrics, error) {
-	p.logger.Error("processing metrics", zap.Any("metrics", metrics))
+	fmt.Sprintf("Processing metrics ")
+	p.logger.Info("Processing metrics", zap.Any("metrics", metrics))
+	//p.logger.Error("processing metrics", zap.Any("metrics", metrics))
 	return metrics, nil
 }
 
