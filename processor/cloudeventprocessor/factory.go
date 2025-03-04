@@ -1,4 +1,4 @@
-package cloudeventtransform
+package cloudeventprocessor
 
 import (
 	"context"
