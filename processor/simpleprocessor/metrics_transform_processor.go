@@ -6,6 +6,7 @@ package simpleprocessor // import "github.com/open-telemetry/opentelemetry-colle
 import (
 	"context"
 	"fmt"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.uber.org/zap"
 )
@@ -17,17 +18,25 @@ type metricsTransformProcessor struct {
 
 //type ConsumeMetricsFunc func(ctx context.Context, md pmetric.Metrics) error
 
-func (p metricsTransformProcessor) processMetrics(ctx context.Context, metrics pmetric.Metrics) (pmetric.Metrics, error) {
-	fmt.Sprintf("Processing metrics ")
-	p.logger.Debug("Processing metrics", zap.Any("metrics", metrics))
-	//p.logger.Error("processing metrics", zap.Any("metrics", metrics))
-	return metrics, nil
-}
-
 func newMetricsTransformProcessor(logger *zap.Logger) *metricsTransformProcessor {
 	logger.Debug("Creating new metrics transform processor")
 	return &metricsTransformProcessor{
 		logger:                   logger,
 		otlpDataModelGateEnabled: false,
 	}
+}
+
+func (p metricsTransformProcessor) Start(ctx context.Context, host component.Host) error {
+	return nil
+}
+
+func (p metricsTransformProcessor) Shutdown(ctx context.Context) error {
+	return nil
+}
+
+func (p metricsTransformProcessor) processMetrics(ctx context.Context, metrics pmetric.Metrics) (pmetric.Metrics, error) {
+	fmt.Sprintf("Processing metrics ")
+	p.logger.Debug("Processing metrics", zap.Any("metrics", metrics))
+	//p.logger.Error("processing metrics", zap.Any("metrics", metrics))
+	return metrics, nil
 }
