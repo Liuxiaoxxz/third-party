@@ -9,7 +9,7 @@ type Config struct {
 }
 
 func createDefaultConfig() component.Config {
-	return Config{}
+	return &Config{}
 }
 
 func validateConfiguration(config *Config) error {
