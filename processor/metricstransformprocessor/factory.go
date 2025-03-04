@@ -4,16 +4,12 @@
 package metricstransformprocessor // import "github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricstransformprocessor"
 
 import (
-	"context"
-	"fmt"
 	"github.com/Liuxiaoxxz/third-party/processor/metricstransformprocessor/internal/metadata"
-	"regexp"
-	"strings"
-
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/processor/processorhelper"
+	"golang.org/x/net/context"
 )
 
 var consumerCapabilities = consumer.Capabilities{MutatesData: true}
@@ -59,58 +55,6 @@ func createMetricsProcessor(
 // validateConfiguration validates the input configuration has all of the required fields for the processor
 // An error is returned if there are any invalid inputs.
 func validateConfiguration(config *Config) error {
-	for _, transform := range config.Transforms {
-		if transform.MetricIncludeFilter.Include == "" {
-			return fmt.Errorf("missing required field %q", includeFieldName)
-		}
-
-		if transform.MetricIncludeFilter.MatchType != "" && !transform.MetricIncludeFilter.MatchType.isValid() {
-			return fmt.Errorf("%q must be in %q", matchTypeFieldName, matchTypes)
-		}
-
-		if transform.MetricIncludeFilter.MatchType == regexpMatchType {
-			_, err := regexp.Compile(transform.MetricIncludeFilter.Include)
-			if err != nil {
-				return fmt.Errorf("%q, %w", includeFieldName, err)
-			}
-		}
-
-		if !transform.Action.isValid() {
-			return fmt.Errorf("%q must be in %q", actionFieldName, actions)
-		}
-
-		if transform.Action == Insert && transform.NewName == "" {
-			return fmt.Errorf("missing required field %q while %q is %v", newNameFieldName, actionFieldName, Insert)
-		}
-
-		if transform.Action == Group && transform.GroupResourceLabels == nil {
-			return fmt.Errorf("missing required field %q while %q is %v", groupResourceLabelsFieldName, actionFieldName, Group)
-		}
-
-		if transform.SubmatchCase != "" && !transform.SubmatchCase.isValid() {
-			return fmt.Errorf("%q must be in %q", submatchCaseFieldName, submatchCases)
-		}
-
-		for i, op := range transform.Operations {
-			if !op.Action.isValid() {
-				return fmt.Errorf("operation %v: %q must be in %q", i+1, actionFieldName, operationActions)
-			}
-
-			if op.Action == updateLabel && op.Label == "" {
-				return fmt.Errorf("operation %v: missing required field %q while %q is %v", i+1, labelFieldName, actionFieldName, updateLabel)
-			}
-			if op.Action == addLabel && op.NewLabel == "" {
-				return fmt.Errorf("operation %v: missing required field %q while %q is %v", i+1, newLabelFieldName, actionFieldName, addLabel)
-			}
-			if op.Action == addLabel && op.NewValue == "" {
-				return fmt.Errorf("operation %v: missing required field %q while %q is %v", i+1, newValueFieldName, actionFieldName, addLabel)
-			}
-			if op.Action == scaleValue && op.Scale == 0 {
-				return fmt.Errorf("operation %v: missing required field %q while %q is %v", i+1, scaleFieldName, actionFieldName, scaleValue)
-			}
-
-		}
-	}
 	return nil
 }
 
@@ -132,12 +76,10 @@ func buildHelperConfig(config *Config, version string) ([]internalTransform, err
 			Action:              t.Action,
 			NewName:             t.NewName,
 			GroupResourceLabels: t.GroupResourceLabels,
-			AggregationType:     t.AggregationType,
 			Operations:          make([]internalOperation, len(t.Operations)),
 		}
 
 		for j, op := range t.Operations {
-			op.NewValue = strings.ReplaceAll(op.NewValue, "{{version}}", version)
 
 			mtpOp := internalOperation{
 				configOperation: op,
@@ -166,22 +108,17 @@ func createFilter(filterConfig FilterConfig) (internalFilter, error) {
 		}
 		return internalFilterStrict{include: filterConfig.Include, attrMatchers: matchers}, nil
 	case regexpMatchType:
-		matchers, err := getMatcherMap(filterConfig.MatchLabels, func(str string) (StringMatcher, error) { return regexp.Compile(str) })
-		if err != nil {
-			return nil, err
-		}
-		return internalFilterRegexp{include: regexp.MustCompile(filterConfig.Include), attrMatchers: matchers}, nil
+		return internalFilterRegexp{}, nil
 	}
 
-	return nil, fmt.Errorf("invalid match type: %v", filterConfig.MatchType)
+	return nil, nil
 }
 
 // createLabelValueMapping creates the labelValue rename mappings based on the valueActions
 func createLabelValueMapping(valueActions []ValueAction, version string) map[string]string {
 	mapping := make(map[string]string)
 	for i := 0; i < len(valueActions); i++ {
-		valueActions[i].NewValue = strings.ReplaceAll(valueActions[i].NewValue, "{{version}}", version)
-		mapping[valueActions[i].Value] = valueActions[i].NewValue
+
 	}
 	return mapping
 }
