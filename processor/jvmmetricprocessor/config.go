@@ -13,6 +13,6 @@ func createDefaultConfig() component.Config {
 }
 
 func validateConfiguration(config *Config) error {
-	fmt.Sprintf("validateConfiguration...{}", config)
+	fmt.Sprintf("validateConfiguration...{}", *config)
 	return nil
 }

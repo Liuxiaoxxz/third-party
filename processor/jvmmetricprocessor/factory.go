@@ -43,3 +43,7 @@ func createMetricsProcessor(
 		metricsProcessor.processMetrics,
 		processorhelper.WithCapabilities(consumerCapabilities))
 }
+
+func hello(s string) string {
+	return "hello " + s
+}
