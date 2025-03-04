@@ -53,6 +53,7 @@ func createMetricsProcessor(
 	cfg component.Config,
 	nextConsumer consumer.Metrics,
 ) (processor.Metrics, error) {
+	fmt.Errorf("createMetricsProcessor.....", cfg)
 	oCfg, ok := cfg.(*Config)
 	if !ok {
 		return nil, fmt.Errorf("cannot create metricstats processor with invalid config type: %t", cfg)
