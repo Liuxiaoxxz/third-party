@@ -17,11 +17,12 @@ const (
 )
 
 var processorCapabilities = consumer.Capabilities{MutatesData: true}
+var componentType = component.MustNewType("cloudeventtransform")
 
 // NewFactory creates a factory for the routing processor.
 func NewFactory() processor.Factory {
 	return processor.NewFactory(
-		typeStr,
+		componentType,
 		CreateDefaultConfig,
 		processor.WithLogs(createLogsProcessor, stability),
 	)
@@ -37,7 +38,7 @@ func CreateDefaultConfig() component.Config {
 
 func createLogsProcessor(
 	ctx context.Context,
-	set processor.CreateSettings,
+	set processor.Settings,
 	cfg component.Config,
 	nextConsumer consumer.Logs) (processor.Logs, error) {
 
@@ -51,7 +52,7 @@ func createLogsProcessor(
 		return nil, errors.New("Failed to create cloud-event processor")
 	}
 
-	return processorhelper.NewLogsProcessor(
+	return processorhelper.NewLogs(
 		ctx,
 		set,
 		cfg,

@@ -15,19 +15,16 @@ dist:
 receivers:
   - gomod: go.opentelemetry.io/collector/receiver/nopreceiver v0.120.0
   - gomod: go.opentelemetry.io/collector/receiver/otlpreceiver v0.120.0
-exporters:
-  - gomod: go.opentelemetry.io/collector/exporter/debugexporter v0.120.0
-  - gomod: go.opentelemetry.io/collector/exporter/nopexporter v0.120.0
-extensions:
-  - gomod: go.opentelemetry.io/collector/extension/memorylimiterextension v0.120.0
-  - gomod: go.opentelemetry.io/collector/extension/zpagesextension v0.120.0
+#exporters:
+#  - gomod: go.opentelemetry.io/collector/exporter/debugexporter v0.120.0
+#  - gomod: go.opentelemetry.io/collector/exporter/nopexporter v0.120.0
+#extensions:
+#  - gomod: go.opentelemetry.io/collector/extension/memorylimiterextension v0.120.0
+#  - gomod: go.opentelemetry.io/collector/extension/zpagesextension v0.120.0
 processors:
-#  - gomod: github.com/Liuxiaoxxz/third-party/processor/simpleprocessor v0.0.0-20250303085242-f7ba283970ad
+  - gomod: github.com/Liuxiaoxxz/third-party/processor/simpleprocessor v0.0.0-20250303085242-f7ba283970ad
   - gomod: github.com/Liuxiaoxxz/third-party/processor/metricstatsprocessor v0.0.0-20250304031330-4733b3812192
-
-
-#  -
-#  - gomod: go.opentelemetry.io/collector/processor/batchprocessor v0.120.0
+  - gomod: go.opentelemetry.io/collector/processor/batchprocessor v0.120.0
 #  - gomod: github.com/Liuxiaoxxz/opentelemetry-collector-contrib/processor/metricstransformprocessor v0.120.0
 
 connectors:

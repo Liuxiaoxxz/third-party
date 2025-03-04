@@ -12,7 +12,7 @@ processors:
     interval: 1m
     include: '^.*$$'
     stats: [ "last" ]
-#  metricstransform:
+  metricstransform:
 exporters:
     debug:
       verbosity: detailed
@@ -21,14 +21,15 @@ service:
   pipelines:
     metrics:
       receivers: [otlp]
-      processors: [metricstats]
-#      processors: [metricstransform]
+      processors: [metricstats,metricstransform]
       exporters: [debug]
-    metrics/prod:
-      receivers: [otlp]
 #      processors: [metricstransform]
-      processors: [metricstats]
-      exporters: [debug]
+
+#      metrics/prod:
+#      receivers: [otlp]
+#      processors: [metricstransform]
+#      processors: [metricstats]
+#      exporters: [debug]
 #    traces/prod:
 #      receivers: [otlp]
 #      exporters: [debug]
