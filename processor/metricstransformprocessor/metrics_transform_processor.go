@@ -4,9 +4,6 @@
 package metricstransformprocessor // import "github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricstransformprocessor"
 
 import (
-	"regexp"
-	"strings"
-
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.uber.org/zap"
@@ -64,12 +61,7 @@ func (f internalFilterStrict) getSubexpNames() []string {
 }
 
 type internalFilterRegexp struct {
-	include      *regexp.Regexp
 	attrMatchers map[string]StringMatcher
-}
-
-func (f internalFilterRegexp) getSubexpNames() []string {
-	return f.include.SubexpNames()
 }
 
 func newMetricsTransformProcessor(logger *zap.Logger, internalTransforms []internalTransform) *metricsTransformProcessor {
@@ -81,10 +73,7 @@ func newMetricsTransformProcessor(logger *zap.Logger, internalTransforms []inter
 
 func replaceCaseOfSubmatch(replacement submatchCase, submatch string) string {
 	switch replacement {
-	case lower:
-		return strings.ToLower(submatch)
-	case upper:
-		return strings.ToUpper(submatch)
+
 	}
 
 	return submatch
