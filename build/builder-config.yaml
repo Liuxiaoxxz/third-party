@@ -20,7 +20,8 @@ exporters:
   - gomod: go.opentelemetry.io/collector/exporter/nopexporter v0.120.0
 processors:
 #  - gomod: github.com/Liuxiaoxxz/third-party/processor/metricstransformprocessor v0.0.0-20250304090432-bdcdf05439ad
-  - gomod: github.com/Liuxiaoxxz/third-party/processor/metricstransformprocessor v0.0.0-20250304093358-634947ae90ad
+  - gomod: github.com/Liuxiaoxxz/third-party/processor/metricstransformprocessor v0.0.0-20250304102022-ab3910eb804a
+
 
 
 connectors:
