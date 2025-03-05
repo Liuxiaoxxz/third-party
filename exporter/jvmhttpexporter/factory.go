@@ -3,6 +3,7 @@ package jvmhttpexporter
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
 	"net/url"
 	"strings"
 	"time"
@@ -33,6 +34,8 @@ const (
 
 // NewFactory creates a factory for OTLP exporter.
 func NewFactory() exporter.Factory {
+	logger := zap.NewNop()
+	logger.Info("jvmhttp exporter created")
 	return xexporter.NewFactory(
 		Type,
 		createDefaultConfig,
