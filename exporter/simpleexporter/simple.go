@@ -82,7 +82,32 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 }
 
 func (e *baseExporter) metricsPartialSuccessHandler(protoBytes []byte, contentType string) error {
+	if protoBytes == nil {
+		return nil
+	}
+	exportResponse := pmetricotlp.NewExportResponse()
+	switch contentType {
+	case protobufContentType:
+		err := exportResponse.UnmarshalProto(protoBytes)
+		if err != nil {
+			return fmt.Errorf("error parsing protobuf response: %w", err)
+		}
+	case jsonContentType:
+		err := exportResponse.UnmarshalJSON(protoBytes)
+		if err != nil {
+			return fmt.Errorf("error parsing json response: %w", err)
+		}
+	default:
+		return nil
+	}
 
+	partialSuccess := exportResponse.PartialSuccess()
+	if !(partialSuccess.ErrorMessage() == "" && partialSuccess.RejectedDataPoints() == 0) {
+		e.logger.Warn("Partial success response",
+			zap.String("message", exportResponse.PartialSuccess().ErrorMessage()),
+			zap.Int64("dropped_data_points", exportResponse.PartialSuccess().RejectedDataPoints()),
+		)
+	}
 	return nil
 }
 

@@ -118,18 +118,17 @@ func createMetrics(
 	set exporter.Settings,
 	cfg component.Config,
 ) (exporter.Metrics, error) {
-	logger.Debug("jvmhttp exporter createMetrics ......")
+	set.Logger.Info("jvmhttp exporter createMetrics ......")
 	oce, err := newExporter(cfg, set)
 	if err != nil {
 		return nil, err
 	}
 	oCfg := cfg.(*Config)
-
 	oce.metricsURL, err = composeSignalURL(oCfg, oCfg.MetricsEndpoint, "metrics", "v1")
+	set.Logger.Info("metrics URL：" + oce.metricsURL)
 	if err != nil {
 		return nil, err
 	}
-
 	return exporterhelper.NewMetrics(ctx, set, cfg,
 		oce.pushMetrics,
 		exporterhelper.WithStart(oce.start),

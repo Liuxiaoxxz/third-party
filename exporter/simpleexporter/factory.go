@@ -73,7 +73,8 @@ func createMetrics(ctx context.Context, set exporter.Settings, cfg component.Con
 		// explicitly disable since we rely on http.Client timeout logic.
 		exporterhelper.WithTimeout(exporterhelper.TimeoutConfig{Timeout: 0}),
 		exporterhelper.WithRetry(oCfg.RetryConfig),
-		exporterhelper.WithQueue(oCfg.QueueConfig))
+		exporterhelper.WithQueue(oCfg.QueueConfig),
+	)
 
 }
 

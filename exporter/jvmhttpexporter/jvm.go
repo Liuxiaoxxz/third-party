@@ -85,6 +85,7 @@ func (e *baseExporter) start(ctx context.Context, host component.Host) error {
 		return err
 	}
 	e.client = client
+	e.logger.Info("JVM HTTP exporter client successfully started")
 	return nil
 }
 
@@ -111,7 +112,6 @@ func (e *baseExporter) pushTraces(ctx context.Context, td ptrace.Traces) error {
 
 func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
 	tr := pmetricotlp.NewExportRequestFromMetrics(md)
-
 	var err error
 	var request []byte
 	switch e.config.Encoding {
@@ -228,7 +228,7 @@ func (e *baseExporter) export(ctx context.Context, url string, request []byte, p
 	// See spec https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/otlp.md#otlphttp-throttling
 	isThrottleError := resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode == http.StatusServiceUnavailable
 	if isThrottleError {
-		// Use Values to check if the header is present, and if present even if it is empty return ThrottleRetry.
+		// Use Values to check if the header is present, and if present even is it is empty return ThrottleRetry.
 		values := resp.Header.Values(headerRetryAfter)
 		if len(values) == 0 {
 			return formattedErr
