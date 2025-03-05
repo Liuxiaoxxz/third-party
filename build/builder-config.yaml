@@ -17,7 +17,8 @@ receivers:
 exporters:
   - gomod: go.opentelemetry.io/collector/exporter/debugexporter v0.120.0
   - gomod: github.com/Liuxiaoxxz/third-party/exporter/jvmhttpexporter v0.0.0-20250305022658-76505a2983e5
-  - gomod: go.opentelemetry.io/collector/exporter/otlphttpexporter v0.120.0
+  - gomod: github.com/Liuxiaoxxz/third-party/exporter/simpleexporter v0.0.0-20250305030121-3adad5ca67d6
+#  - gomod: go.opentelemetry.io/collector/exporter/otlphttpexporter v0.120.0
 
 processors:
 #  - gomod: github.com/Liuxiaoxxz/third-party/processor/jvmmetricprocessor v0.0.0-20250304112531-041f6582cd59

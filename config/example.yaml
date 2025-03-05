@@ -12,8 +12,9 @@ exporters:
       verbosity: detailed
     jvmhttp:
       endpoint: http://127.0.0.1:4318
-    otlphttp:
-      endpoint: http://127.0.0.1:4318
+    simple:
+#    otlphttp:
+#      endpoint: http://127.0.0.1:4318
 processors:
   jvmmetricr:
 
@@ -23,4 +24,4 @@ service:
     metrics:
       receivers: [otlp]
       processors: [jvmmetricr]
-      exporters: [debug,jvmhttp,otlphttp]
+      exporters: [debug,jvmhttp,simple]
