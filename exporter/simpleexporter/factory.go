@@ -30,7 +30,6 @@ const (
 )
 
 func NewFactory() exporter.Factory {
-	logger.Info("jvmhttp exporter created")
 	return xexporter.NewFactory(
 		Type,
 		createDefaultConfig,
@@ -39,7 +38,6 @@ func NewFactory() exporter.Factory {
 }
 
 func createDefaultConfig() component.Config {
-	logger.Info("jvmhttp exporter createDefaultConfig ......")
 	clientConfig := confighttp.NewDefaultClientConfig()
 	clientConfig.Timeout = 30 * time.Second
 	// Default to gzip compression
@@ -56,7 +54,7 @@ func createDefaultConfig() component.Config {
 }
 
 func createMetrics(ctx context.Context, set exporter.Settings, cfg component.Config) (exporter.Metrics, error) {
-	logger.Info("simple exporter started")
+	set.Logger.Info("simple exporter started")
 	oce, err := newExporter(cfg, set)
 	if err != nil {
 		return nil, err
