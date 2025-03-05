@@ -58,7 +58,7 @@ func createDefaultConfig() component.Config {
 	return &Config{
 		RetryConfig:  configretry.NewDefaultBackOffConfig(),
 		QueueConfig:  exporterhelper.NewDefaultQueueConfig(),
-		Encoding:     EncodingProto,
+		Encoding:     EncodingJSON,
 		ClientConfig: clientConfig,
 	}
 }

@@ -123,6 +123,7 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 		err = fmt.Errorf("invalid encoding: %s", e.config.Encoding)
 	}
 	e.logger.Info("Encode_metric：" + string(request))
+	e.logger.Info("metricsURL:" + e.metricsURL)
 	if err != nil {
 		return consumererror.NewPermanent(err)
 	}
@@ -187,7 +188,15 @@ func (e *baseExporter) export(ctx context.Context, url string, request []byte, p
 		return fmt.Errorf("invalid encoding: %s", e.config.Encoding)
 	}
 
+	// 打印 exporter 的 request
 	req.Header.Set("User-Agent", e.userAgent)
+	e.logger.Info("HTTP Request",
+		zap.String("Method", req.Method),
+		zap.String("URL", req.URL.String()),
+		zap.Any("Headers", req.Header),
+	)
+	requestCopy := string(request)
+	e.logger.Info("Request Body: " + requestCopy)
 
 	resp, err := e.client.Do(req)
 	if err != nil {
