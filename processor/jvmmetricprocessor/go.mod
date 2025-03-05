@@ -1,5 +1,4 @@
 module github.com/Liuxiaoxxz/third-party/processor/jvmmetricprocessor
-
 go 1.23.6
 
 require (
