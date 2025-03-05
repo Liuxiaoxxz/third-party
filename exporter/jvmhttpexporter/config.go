@@ -63,6 +63,7 @@ var _ component.Config = (*Config)(nil)
 
 // Validate checks if the exporter configuration is valid
 func (cfg *Config) Validate() error {
+	logger.Info("Validate config .......")
 	if cfg.Endpoint == "" && cfg.TracesEndpoint == "" && cfg.MetricsEndpoint == "" && cfg.LogsEndpoint == "" {
 		return errors.New("at least one endpoint must be specified")
 	}

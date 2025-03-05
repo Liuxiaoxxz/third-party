@@ -54,6 +54,7 @@ const (
 
 // Create new exporter.
 func newExporter(cfg component.Config, set exporter.Settings) (*baseExporter, error) {
+	logger.Info("newExporter ....")
 	oCfg := cfg.(*Config)
 
 	if oCfg.Endpoint != "" {

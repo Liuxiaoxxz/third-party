@@ -91,6 +91,7 @@ func createTraces(
 	set exporter.Settings,
 	cfg component.Config,
 ) (exporter.Traces, error) {
+
 	oce, err := newExporter(cfg, set)
 	if err != nil {
 		return nil, err
