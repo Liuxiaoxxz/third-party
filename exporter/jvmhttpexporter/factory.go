@@ -23,6 +23,7 @@ var (
 	//Type      = component.MustNewType("otlphttp")
 	Type      = component.MustNewType("jvmhttp")
 	ScopeName = "go.opentelemetry.io/collector/exporter/jvmhttpexporter"
+	logger    = zap.NewNop()
 )
 
 const (
@@ -34,7 +35,6 @@ const (
 
 // NewFactory creates a factory for OTLP exporter.
 func NewFactory() exporter.Factory {
-	logger := zap.NewNop()
 	logger.Info("jvmhttp exporter created")
 	return xexporter.NewFactory(
 		Type,
@@ -47,6 +47,7 @@ func NewFactory() exporter.Factory {
 }
 
 func createDefaultConfig() component.Config {
+	logger.Info("jvmhttp exporter createDefaultConfig ......")
 	clientConfig := confighttp.NewDefaultClientConfig()
 	clientConfig.Timeout = 30 * time.Second
 	// Default to gzip compression
@@ -116,6 +117,7 @@ func createMetrics(
 	set exporter.Settings,
 	cfg component.Config,
 ) (exporter.Metrics, error) {
+	logger.Debug("jvmhttp exporter createMetrics ......")
 	oce, err := newExporter(cfg, set)
 	if err != nil {
 		return nil, err
