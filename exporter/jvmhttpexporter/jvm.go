@@ -122,8 +122,11 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 	default:
 		err = fmt.Errorf("invalid encoding: %s", e.config.Encoding)
 	}
-	e.logger.Info("Encode_metric：" + string(request))
-	e.logger.Info("metricsURL:" + e.metricsURL)
+	// TODO 实现otlp格式的转化
+	request_bck, err := metricTransform(ctx, md)
+	e.logger.Info("JVM HTTP exporter metric transform request successfully started, request Body: " + string(request_bck))
+	requestCopy := string(request)
+	e.logger.Info("Request Body: " + requestCopy)
 	if err != nil {
 		return consumererror.NewPermanent(err)
 	}
