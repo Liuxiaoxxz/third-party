@@ -62,7 +62,7 @@ type ThreadInfos struct {
 }
 
 type MemoryPool struct {
-	MemoryUsages map[string]MemoryUsage `json:"memoryUsages"`
+	MemoryUsages map[string]*MemoryUsage `json:"memoryUsages"`
 }
 
 type MemoryUsage struct {
@@ -73,7 +73,7 @@ type MemoryUsage struct {
 }
 
 type GarbageCollector struct {
-	GarbageCollectors map[string]GarbageCollectorInfo `json:"garbageCollectors"`
+	GarbageCollectors map[string]*GarbageCollectorInfo `json:"garbageCollectors"`
 }
 
 type GarbageCollectorInfo struct {
@@ -96,7 +96,8 @@ var (
 		"G1 Old Gen":                       "G1OldGen",
 		// GC 映射
 		"G1 Young Generation": "G1 Young Generation",
-		"G1 Old Generation":   "G1 Old Generation",
+		//"G1 Old Generation":   "G1 Old Generation",
+		"G1 Concurrent GC": "G1 Old Generation",
 	}
 )
 
@@ -243,7 +244,7 @@ func copeMetricV1(data *InternalData, metric pmetric.Metric) {
 				mappedName := dict[poolName]
 				if _, exists := data.MemoryPool.MemoryUsages[mappedName]; !exists {
 					// 初始化 MemoryUsage
-					data.MemoryPool.MemoryUsages[mappedName] = MemoryUsage{}
+					data.MemoryPool.MemoryUsages[mappedName] = &MemoryUsage{}
 				}
 				// 根据字段填充数据
 				memoryUsage := data.MemoryPool.MemoryUsages[mappedName]
@@ -267,7 +268,7 @@ func copeMetricV1(data *InternalData, metric pmetric.Metric) {
 				garbageCollectorName := dict[name.AsString()]
 				if _, exists := data.GarbageCollector.GarbageCollectors[garbageCollectorName]; !exists {
 					// 初始化 GarbageCollectorInfo
-					data.GarbageCollector.GarbageCollectors[garbageCollectorName] = GarbageCollectorInfo{}
+					data.GarbageCollector.GarbageCollectors[garbageCollectorName] = &GarbageCollectorInfo{}
 				}
 				garbageCollectorInfo := data.GarbageCollector.GarbageCollectors[garbageCollectorName]
 				garbageCollectorInfo.Name = garbageCollectorName
@@ -298,10 +299,10 @@ func copeMetricV1(data *InternalData, metric pmetric.Metric) {
 func copeMetricV2(data *InternalData, metric pmetric.Metric) {
 	// 确保 MemoryPool 和 GarbageCollector 的 maps 被初始化
 	if data.MemoryPool.MemoryUsages == nil {
-		data.MemoryPool.MemoryUsages = make(map[string]MemoryUsage)
+		data.MemoryPool.MemoryUsages = make(map[string]*MemoryUsage)
 	}
 	if data.GarbageCollector.GarbageCollectors == nil {
-		data.GarbageCollector.GarbageCollectors = make(map[string]GarbageCollectorInfo)
+		data.GarbageCollector.GarbageCollectors = make(map[string]*GarbageCollectorInfo)
 	}
 
 	switch metric.Name() {
@@ -317,7 +318,9 @@ func copeMetricV2(data *InternalData, metric pmetric.Metric) {
 				mappedName := dict[poolName]
 				// 确保内存池数据被初始化
 				if _, exists := data.MemoryPool.MemoryUsages[mappedName]; !exists {
-					data.MemoryPool.MemoryUsages[mappedName] = MemoryUsage{}
+					data.MemoryPool.MemoryUsages[mappedName] = &MemoryUsage{
+						Max: -1,
+					}
 				}
 				// 根据字段填充数据
 				memoryUsage := data.MemoryPool.MemoryUsages[mappedName]
@@ -341,7 +344,7 @@ func copeMetricV2(data *InternalData, metric pmetric.Metric) {
 				garbageCollectorName := dict[name.AsString()]
 				// 确保垃圾收集器数据被初始化
 				if _, exists := data.GarbageCollector.GarbageCollectors[garbageCollectorName]; !exists {
-					data.GarbageCollector.GarbageCollectors[garbageCollectorName] = GarbageCollectorInfo{}
+					data.GarbageCollector.GarbageCollectors[garbageCollectorName] = &GarbageCollectorInfo{}
 				}
 				garbageCollectorInfo := data.GarbageCollector.GarbageCollectors[garbageCollectorName]
 				garbageCollectorInfo.Name = garbageCollectorName
