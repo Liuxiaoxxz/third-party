@@ -130,7 +130,7 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 	if err != nil {
 		return consumererror.NewPermanent(err)
 	}
-	return e.export(ctx, e.metricsURL, request, e.metricsPartialSuccessHandler)
+	return e.export(ctx, e.metricsURL, request_bck, e.metricsPartialSuccessHandler)
 }
 
 func (e *baseExporter) pushLogs(ctx context.Context, ld plog.Logs) error {

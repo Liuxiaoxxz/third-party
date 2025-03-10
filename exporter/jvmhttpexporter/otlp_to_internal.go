@@ -96,8 +96,8 @@ var (
 		"G1 Old Gen":                       "G1OldGen",
 		// GC 映射
 		"G1 Young Generation": "G1 Young Generation",
-		//"G1 Old Generation":   "G1 Old Generation",
-		"G1 Concurrent GC": "G1 Old Generation",
+		"G1 Old Generation":   "G1 Old Generation",
+		"G1 Concurrent GC":    "G1 Concurrent GC",
 	}
 )
 
@@ -123,6 +123,9 @@ func metricTransform(ctx context.Context, md pmetric.Metrics) ([]byte, error) {
 		resourceAttributes := resource.Attributes()
 		if appname, b := resourceAttributes.Get("service.name"); b == true {
 			data.AppName = appname.AsString()
+		}
+		if pid, b := resourceAttributes.Get("process.pid"); b == true {
+			data.Pid = string(pid.Int())
 		}
 		scopeMetrics := resourceMetric.ScopeMetrics()
 		smsLen := scopeMetrics.Len()
@@ -316,6 +319,10 @@ func copeMetricV2(data *InternalData, metric pmetric.Metric) {
 				poolName := v.AsString()
 				// 获取池名映射
 				mappedName := dict[poolName]
+				if mappedName == "" {
+					// 如果映射不到，使用 poolName 本身作为默认值
+					mappedName = poolName
+				}
 				// 确保内存池数据被初始化
 				if _, exists := data.MemoryPool.MemoryUsages[mappedName]; !exists {
 					data.MemoryPool.MemoryUsages[mappedName] = &MemoryUsage{
@@ -342,6 +349,10 @@ func copeMetricV2(data *InternalData, metric pmetric.Metric) {
 			name, b := dataPointAttributes.Get(JVM_GC_NAME)
 			if b {
 				garbageCollectorName := dict[name.AsString()]
+				if garbageCollectorName == "" {
+					// 如果映射不到，使用 poolName 本身作为默认值
+					garbageCollectorName = name.AsString()
+				}
 				// 确保垃圾收集器数据被初始化
 				if _, exists := data.GarbageCollector.GarbageCollectors[garbageCollectorName]; !exists {
 					data.GarbageCollector.GarbageCollectors[garbageCollectorName] = &GarbageCollectorInfo{}
