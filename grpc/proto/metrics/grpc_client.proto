@@ -1,0 +1,120 @@
+syntax = "proto3";
+option go_package = "..;service";
+option java_multiple_files = true;
+option java_generic_services = true;
+
+import "google/protobuf/empty.proto";
+
+service Grpc {
+  rpc Export (ExportRequest) returns (ExportResponse);
+  rpc Unexported (google.protobuf.Empty) returns (google.protobuf.Empty);
+}
+
+
+
+message ExportRequest {
+  ExportMetricsServiceRequest orig = 1;
+  int32 state = 2;
+}
+
+message ExportResponse {
+  ExportMetricsServiceRequest orig = 1;
+  int32 state = 2;
+}
+
+// 定义 CPU 结构体
+message CPU {
+  double processCpu = 1;
+  double avgSystemCpu = 2;
+  double systemCpu = 3;
+  double avgProcessCpu = 4;
+}
+
+// 定义 ThreadInfos 结构体
+message ThreadInfos {
+  repeated string lockNames = 1;
+  repeated string threadInfo = 2; // 这里使用 repeated repeated 来表示二维数组
+}
+
+// 定义 Thread 结构体
+message Thread {
+  int64 threadCount = 1;
+  ThreadInfos threadInfos = 2;
+  int32 totalStartedThreadCount = 3;
+  int64 peakThreadCount = 4;
+  int64 deamonThreadCount = 5;
+}
+
+// 定义 MemoryUsage 结构体
+message MemoryUsage {
+  int64 init = 1;
+  int64 committed = 2;
+  int64 max = 3;
+  int64 used = 4;
+}
+
+// 定义 MemoryPool 结构体
+message MemoryPool {
+  map<string, MemoryUsage> memoryUsages = 1;
+}
+
+// 定义 GarbageCollectorInfo 结构体
+message GarbageCollectorInfo {
+  bool valid = 1;
+  int32 collectionTime = 2;
+  repeated string memoryPoolNames = 3;
+  uint64 collectionCount = 4;
+  string name = 5;
+}
+
+// 定义 GarbageCollector 结构体
+message GarbageCollector {
+  map<string, GarbageCollectorInfo> garbageCollectors = 1;
+}
+
+// 定义 DatabaseConnectionMessage 结构体
+message DatabaseConnectionMessage {
+  repeated string leakSuspicious = 1;
+  repeated string databaseConnectionMessageArray = 2;
+}
+
+// 定义 BufferPool 结构体
+message BufferPool {
+  message Mapped {
+    int32 count = 1;
+    int32 used = 2;
+    int32 capacity = 3;
+  }
+
+  message Direct {
+    int32 count = 1;
+    int32 used = 2;
+    int32 capacity = 3;
+  }
+
+  Mapped mapped = 1;
+  Direct direct = 2;
+}
+
+message ExportMetricsServiceRequest {
+  BufferPool bufferPool = 1;
+  string agentId = 2;
+  string creationTime = 3;
+  string appName = 4;
+  string appStartTime = 5;
+  CPU cpu = 6;
+  string pid = 7;
+  Thread thread = 8;
+  MemoryPool memoryPool = 9;
+  string version = 10;
+  bool docker = 11;
+  GarbageCollector garbageCollector = 12;
+  string multiAgentId = 13;
+  DatabaseConnectionMessage databaseConnectionMessage = 14;
+  int32 status = 15;
+}
+
+message ExportMetricsPartialSuccess {
+  int64 RejectedLogRecords = 1;
+  string ErrorMessage = 2;
+}
