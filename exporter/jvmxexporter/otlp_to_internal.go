@@ -39,14 +39,18 @@ const (
 
 func metricTransform(ctx context.Context, md pmetric.Metrics, logger *zap.Logger) (*metrics.ExportMetricsServiceRequest, error) {
 	data := &metrics.ExportMetricsServiceRequest{}
+	data.Thread = &metrics.Thread{}
+	data.MemoryPool.MemoryUsages = make(map[string]*metrics.MemoryUsage)
+	data.GarbageCollector.GarbageCollectors = make(map[string]*metrics.GarbageCollectorInfo)
+
 	resourceMetrics := md.ResourceMetrics()
 	rmsLen := resourceMetrics.Len()
 	for i := 0; i < rmsLen; i++ {
 		resourceMetric := resourceMetrics.At(i)
 		resource := resourceMetric.Resource()
 		resourceAttributes := resource.Attributes()
-		if appname, b := resourceAttributes.Get("service.name"); b == true {
-			data.AppName = appname.AsString()
+		if appName, b := resourceAttributes.Get("service.name"); b == true {
+			data.AppName = appName.AsString()
 		}
 		if pid, b := resourceAttributes.Get("process.pid"); b == true {
 			data.Pid = string(pid.Int())
@@ -57,11 +61,11 @@ func metricTransform(ctx context.Context, md pmetric.Metrics, logger *zap.Logger
 			scopeMetric := scopeMetrics.At(i)
 			scopeName := scopeMetric.Scope().Name()
 			if strings.Contains(scopeName, "io.opentelemetry.runtime-telemetry-java") {
-				metrics := scopeMetric.Metrics()
-				msLen := metrics.Len()
+				smetrics := scopeMetric.Metrics()
+				msLen := smetrics.Len()
 				for i := 0; i < msLen; i++ {
-					metric := metrics.At(i)
-					copeMetricV2(data, metric)
+					smetric := smetrics.At(i)
+					copeMetricV2(data, smetric, logger)
 				}
 			}
 		}
@@ -259,15 +263,7 @@ func metricTransform(ctx context.Context, md pmetric.Metrics, logger *zap.Logger
 //	}
 //}
 
-func copeMetricV2(data *metrics.ExportMetricsServiceRequest, metric pmetric.Metric) {
-	// 确保 MemoryPool 和 GarbageCollector 的 maps 被初始化
-	if data.MemoryPool.MemoryUsages == nil {
-		data.MemoryPool.MemoryUsages = make(map[string]*metrics.MemoryUsage)
-	}
-	if data.GarbageCollector.GarbageCollectors == nil {
-		data.GarbageCollector.GarbageCollectors = make(map[string]*metrics.GarbageCollectorInfo)
-	}
-
+func copeMetricV2(data *metrics.ExportMetricsServiceRequest, metric pmetric.Metric, logger *zap.Logger) {
 	switch metric.Name() {
 	case JVM_MEMORY_USED, JVM_MEMORY_COMMITTED, JVM_MEMORY_LIMITI:
 		dataPoints := metric.Sum().DataPoints()
@@ -340,5 +336,7 @@ func copeMetricV2(data *metrics.ExportMetricsServiceRequest, metric pmetric.Metr
 		data.Thread.ThreadCount = threadCount
 		data.Thread.PeakThreadCount = threadCount
 		data.Thread.DeamonThreadCount = daemonThreadCount
+	default:
+		logger.Info("Unsupported metric type", zap.String("type", metric.Name()))
 	}
 }
