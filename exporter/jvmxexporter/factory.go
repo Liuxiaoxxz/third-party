@@ -35,10 +35,10 @@ func NewFactory() exporter.Factory {
 	return xexporter.NewFactory(
 		Type,
 		createDefaultConfig,
-		xexporter.WithTraces(createTraces, TracesStability),
+		//xexporter.WithTraces(createTraces, TracesStability),
 		xexporter.WithMetrics(createMetrics, MetricsStability),
-		xexporter.WithLogs(createLogs, LogsStability),
-		xexporter.WithProfiles(createProfilesExporter, ProfilesStability),
+		//xexporter.WithLogs(createLogs, LogsStability),
+		//xexporter.WithProfiles(createProfilesExporter, ProfilesStability),
 	)
 }
 

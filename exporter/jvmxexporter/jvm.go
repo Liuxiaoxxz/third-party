@@ -111,7 +111,7 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 		State: 0,
 	}
 	e.settings.Logger.Info("jvm grpc pushMetrics ....")
-	orig, err := metricTransform(ctx, md)
+	orig, err := metricTransform(ctx, md, e.settings.Logger)
 	if err != nil {
 		panic("error transforming metrics")
 	}
