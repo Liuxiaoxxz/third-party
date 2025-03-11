@@ -40,6 +40,8 @@ const (
 func metricTransform(ctx context.Context, md pmetric.Metrics, logger *zap.Logger) (*metrics.ExportMetricsServiceRequest, error) {
 	data := &metrics.ExportMetricsServiceRequest{}
 	data.Thread = &metrics.Thread{}
+	data.MemoryPool = &metrics.MemoryPool{}
+	data.GarbageCollector = &metrics.GarbageCollector{}
 	data.MemoryPool.MemoryUsages = make(map[string]*metrics.MemoryUsage)
 	data.GarbageCollector.GarbageCollectors = make(map[string]*metrics.GarbageCollectorInfo)
 
