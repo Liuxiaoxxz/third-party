@@ -116,9 +116,10 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 		panic("error transforming metrics")
 	}
 	req.Orig = orig
-	resp, respErr := e.metricExporter.Export(ctx, req, e.callOptions...)
-	if err := processError(respErr); err != nil {
-		return err
+	resp, err := e.metricExporter.Export(ctx, req, e.callOptions...)
+
+	if err != nil {
+		e.settings.Logger.Error("jvm grpc pushMetrics failed", zap.Error(err))
 	}
 
 	state := resp.State

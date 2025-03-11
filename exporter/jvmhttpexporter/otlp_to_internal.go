@@ -151,7 +151,7 @@ func metricTransform(ctx context.Context, md pmetric.Metrics) ([]byte, error) {
 	fmt.Println(string(jsonBytes))
 	// 输出: {"name":"Alice","age":30}
 
-	return nil, nil
+	return jsonBytes, nil
 }
 
 func copeMetric(data *InternalData, metric pmetric.Metric) {
