@@ -177,7 +177,7 @@ func (e *baseExporter) pushProfiles(ctx context.Context, td pprofile.Profiles) e
 
 func (e *baseExporter) export(ctx context.Context, url string, request []byte, partialSuccessHandler partialSuccessHandler) error {
 	e.logger.Debug("Preparing to make HTTP request", zap.String("url", url))
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(request))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://127.0.0.1:8080/", bytes.NewReader(request))
 	if err != nil {
 		return consumererror.NewPermanent(err)
 	}
