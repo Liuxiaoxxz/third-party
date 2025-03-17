@@ -16,6 +16,7 @@ import (
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/prometheus/client_golang/prometheus/push"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.opentelemetry.io/collector/exporter"
@@ -28,6 +29,14 @@ import (
 	"go.opentelemetry.io/collector/pdata/pprofile/pprofileotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
+)
+
+const (
+	headerRetryAfter         = "Retry-After"
+	maxHTTPResponseReadBytes = 64 * 1024
+
+	jsonContentType     = "application/json"
+	protobufContentType = "application/x-protobuf"
 )
 
 type baseExporter struct {
@@ -43,14 +52,6 @@ type baseExporter struct {
 	// Default user-agent header.
 	userAgent string
 }
-
-const (
-	headerRetryAfter         = "Retry-After"
-	maxHTTPResponseReadBytes = 64 * 1024
-
-	jsonContentType     = "application/json"
-	protobufContentType = "application/x-protobuf"
-)
 
 // Create new exporter.
 func newExporter(cfg component.Config, set exporter.Settings) (*baseExporter, error) {
@@ -133,6 +134,17 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 	return e.export(ctx, e.metricsURL, request_bck, e.metricsPartialSuccessHandler)
 }
 
+func (e *baseExporter) pushToPrometheus(md pmetric.Metrics) error {
+	pusher := push.New("http://localhost:9091", "otel_metrics")
+	//pusher.
+	// **推送到 Prometheus**
+	err := pusher.Push()
+	if err != nil {
+		return fmt.Errorf("failed to push metrics to Prometheus: %w", err)
+	}
+	e.logger.Info("Metrics successfully pushed to Prometheus")
+	return nil
+}
 func (e *baseExporter) pushLogs(ctx context.Context, ld plog.Logs) error {
 	tr := plogotlp.NewExportRequestFromLogs(ld)
 

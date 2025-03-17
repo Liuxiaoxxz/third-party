@@ -20,7 +20,6 @@ import (
 )
 
 var (
-	//Type      = component.MustNewType("otlphttp")
 	Type      = component.MustNewType("jvmhttp")
 	ScopeName = "go.opentelemetry.io/collector/exporter/jvmhttpexporter"
 	logger    = zap.NewNop()
@@ -33,9 +32,7 @@ const (
 	LogsStability     = component.StabilityLevelStable
 )
 
-// NewFactory creates a factory for OTLP exporter.
 func NewFactory() exporter.Factory {
-	logger.Info("jvmhttp exporter created")
 	return xexporter.NewFactory(
 		Type,
 		createDefaultConfig,
@@ -44,6 +41,32 @@ func NewFactory() exporter.Factory {
 		xexporter.WithLogs(createLogs, LogsStability),
 		xexporter.WithProfiles(createProfiles, ProfilesStability),
 	)
+}
+
+func createMetrics(
+	ctx context.Context,
+	set exporter.Settings,
+	cfg component.Config,
+) (exporter.Metrics, error) {
+	set.Logger.Info("jvmhttp exporter createMetrics ......")
+	oce, err := newExporter(cfg, set)
+	if err != nil {
+		return nil, err
+	}
+	oCfg := cfg.(*Config)
+	oce.metricsURL, err = composeSignalURL(oCfg, oCfg.MetricsEndpoint, "metrics", "v1")
+	set.Logger.Info("metrics URL：" + oce.metricsURL)
+	if err != nil {
+		return nil, err
+	}
+	return exporterhelper.NewMetrics(ctx, set, cfg,
+		oce.pushMetrics,
+		exporterhelper.WithStart(oce.start),
+		exporterhelper.WithCapabilities(consumer.Capabilities{MutatesData: false}),
+		// explicitly disable since we rely on http.Client timeout logic.
+		exporterhelper.WithTimeout(exporterhelper.TimeoutConfig{Timeout: 0}),
+		exporterhelper.WithRetry(oCfg.RetryConfig),
+		exporterhelper.WithQueue(oCfg.QueueConfig))
 }
 
 func createDefaultConfig() component.Config {
@@ -105,32 +128,6 @@ func createTraces(
 
 	return exporterhelper.NewTraces(ctx, set, cfg,
 		oce.pushTraces,
-		exporterhelper.WithStart(oce.start),
-		exporterhelper.WithCapabilities(consumer.Capabilities{MutatesData: false}),
-		// explicitly disable since we rely on http.Client timeout logic.
-		exporterhelper.WithTimeout(exporterhelper.TimeoutConfig{Timeout: 0}),
-		exporterhelper.WithRetry(oCfg.RetryConfig),
-		exporterhelper.WithQueue(oCfg.QueueConfig))
-}
-
-func createMetrics(
-	ctx context.Context,
-	set exporter.Settings,
-	cfg component.Config,
-) (exporter.Metrics, error) {
-	set.Logger.Info("jvmhttp exporter createMetrics ......")
-	oce, err := newExporter(cfg, set)
-	if err != nil {
-		return nil, err
-	}
-	oCfg := cfg.(*Config)
-	oce.metricsURL, err = composeSignalURL(oCfg, oCfg.MetricsEndpoint, "metrics", "v1")
-	set.Logger.Info("metrics URL：" + oce.metricsURL)
-	if err != nil {
-		return nil, err
-	}
-	return exporterhelper.NewMetrics(ctx, set, cfg,
-		oce.pushMetrics,
 		exporterhelper.WithStart(oce.start),
 		exporterhelper.WithCapabilities(consumer.Capabilities{MutatesData: false}),
 		// explicitly disable since we rely on http.Client timeout logic.

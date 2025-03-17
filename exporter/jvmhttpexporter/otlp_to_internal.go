@@ -22,6 +22,7 @@ type InternalData struct {
 			Capacity int `json:"capacity"`
 		} `json:"direct"`
 	} `json:"bufferPool"`
+	LogType                   string           `json:"logType"`
 	AgentId                   string           `json:"agentId"`
 	CreationTime              string           `json:"creationTime"`
 	AppName                   string           `json:"appName"`
@@ -115,6 +116,7 @@ const (
 
 func metricTransform(ctx context.Context, md pmetric.Metrics) ([]byte, error) {
 	data := &InternalData{}
+	data.LogType = "JavaManagementData"
 	resourceMetrics := md.ResourceMetrics()
 	rmsLen := resourceMetrics.Len()
 	for i := 0; i < rmsLen; i++ {
