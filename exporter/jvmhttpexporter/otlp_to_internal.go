@@ -8,6 +8,12 @@ import (
 	"strings"
 )
 
+type Data struct {
+	LogMessage InternalData `json:"logMessage"`
+	LogType    string       `json:"logType"`
+	MasterIp   string       `json:"masterIp"`
+}
+
 // 内部格式的数据结构
 type InternalData struct {
 	BufferPool struct {
@@ -22,7 +28,6 @@ type InternalData struct {
 			Capacity int `json:"capacity"`
 		} `json:"direct"`
 	} `json:"bufferPool"`
-	LogType                   string           `json:"logType"`
 	AgentId                   string           `json:"agentId"`
 	CreationTime              string           `json:"creationTime"`
 	AppName                   string           `json:"appName"`
@@ -115,8 +120,11 @@ const (
 )
 
 func metricTransform(ctx context.Context, md pmetric.Metrics) ([]byte, error) {
-	data := &InternalData{}
+	data := &Data{}
 	data.LogType = "JavaManagementData"
+	data.LogMessage = InternalData{}
+	logMessage := &data.LogMessage
+	//logMessage.LogType = "JavaManagementData"
 	resourceMetrics := md.ResourceMetrics()
 	rmsLen := resourceMetrics.Len()
 	for i := 0; i < rmsLen; i++ {
@@ -124,11 +132,12 @@ func metricTransform(ctx context.Context, md pmetric.Metrics) ([]byte, error) {
 		resource := resourceMetric.Resource()
 		resourceAttributes := resource.Attributes()
 		if appname, b := resourceAttributes.Get("service.name"); b == true {
-			data.AppName = appname.AsString()
+			logMessage.AppName = appname.AsString()
 		}
 		if pid, b := resourceAttributes.Get("process.pid"); b == true {
-			data.Pid = string(pid.Int())
+			logMessage.Pid = string(pid.Int())
 		}
+
 		scopeMetrics := resourceMetric.ScopeMetrics()
 		smsLen := scopeMetrics.Len()
 		for i := 0; i < smsLen; i++ {
@@ -139,7 +148,7 @@ func metricTransform(ctx context.Context, md pmetric.Metrics) ([]byte, error) {
 				msLen := metrics.Len()
 				for i := 0; i < msLen; i++ {
 					metric := metrics.At(i)
-					copeMetricV2(data, metric)
+					copeMetric(logMessage, metric)
 				}
 			}
 		}
@@ -156,158 +165,13 @@ func metricTransform(ctx context.Context, md pmetric.Metrics) ([]byte, error) {
 	return jsonBytes, nil
 }
 
-func copeMetric(data *InternalData, metric pmetric.Metric) {
-	switch metric.Name() {
-	case JVM_MEMORY_USED:
-		dataPoints := metric.Sum().DataPoints()
-		for i := 0; i < dataPoints.Len(); i++ {
-			dataPoint := dataPoints.At(i)
-			dataPointAttributes := dataPoint.Attributes()
-			v, b := dataPointAttributes.Get(JVM_MEMORY_POOL_NAME)
-			if b == true {
-			}
-			poolName := v.AsString()
-			memoryUsage := data.MemoryPool.MemoryUsages[dict[poolName]]
-			memoryUsage.Used = dataPoint.IntValue()
-		}
-		break
-	case JVM_MEMORY_COMMITTED:
-		dataPoints := metric.Sum().DataPoints()
-		for i := 0; i < dataPoints.Len(); i++ {
-			dataPoint := dataPoints.At(i)
-			dataPointAttributes := dataPoint.Attributes()
-			v, b := dataPointAttributes.Get(JVM_MEMORY_POOL_NAME)
-			if b == true {
-			}
-			poolName := v.AsString()
-			memoryUsage := data.MemoryPool.MemoryUsages[dict[poolName]]
-			memoryUsage.Used = dataPoint.IntValue()
-		}
-		break
-	case JVM_MEMORY_LIMITI:
-		dataPoints := metric.Sum().DataPoints()
-		for i := 0; i < dataPoints.Len(); i++ {
-			dataPoint := dataPoints.At(i)
-			dataPointAttributes := dataPoint.Attributes()
-			v, b := dataPointAttributes.Get(JVM_MEMORY_POOL_NAME)
-			if b == true {
-			}
-			poolName := v.AsString()
-			memoryUsage := data.MemoryPool.MemoryUsages[dict[poolName]]
-			memoryUsage.Used = dataPoint.IntValue()
-		}
-		break
-	case JVM_GC_DURATION:
-		histogram := metric.Histogram()
-		dataPoints := histogram.DataPoints()
-		for i := 0; i < dataPoints.Len(); i++ {
-			dataPoint := dataPoints.At(i)
-			dataPointAttributes := dataPoint.Attributes()
-			name, b := dataPointAttributes.Get(JVM_GC_NAME)
-			if !b {
-				break
-			}
-			garbageCollectorInfo := data.GarbageCollector.GarbageCollectors[name.AsString()]
-			garbageCollectorInfo.Name = dict[name.AsString()]
-			garbageCollectorInfo.CollectionCount = dataPoint.Count()
-			garbageCollectorInfo.CollectionTime = int(dataPoint.Sum() * 1000)
-		}
-		break
-	case JVM_THREAD_COUNT:
-		sum := metric.Sum()
-		dataPoints := sum.DataPoints()
-		var threadCount int64
-		var daemonThreadCount int64
-		for i := 0; i < dataPoints.Len(); i++ {
-			dataPoint := dataPoints.At(i)
-			currentThreadCount := dataPoint.IntValue()
-			threadCount = threadCount + currentThreadCount
-			isDaemon, b := dataPoint.Attributes().Get(JVM_THREAD_DAEMON)
-			if b && isDaemon.Bool() {
-				daemonThreadCount += currentThreadCount
-			}
-		}
-		data.Thread.ThreadCount = threadCount
-		data.Thread.PeakThreadCount = threadCount
-		data.Thread.DeamonThreadCount = daemonThreadCount
-		break
-	}
-
-}
-
-func copeMetricV1(data *InternalData, metric pmetric.Metric) {
-	switch metric.Name() {
-	case JVM_MEMORY_USED, JVM_MEMORY_COMMITTED, JVM_MEMORY_LIMITI:
-		dataPoints := metric.Sum().DataPoints()
-		for i := 0; i < dataPoints.Len(); i++ {
-			dataPoint := dataPoints.At(i)
-			dataPointAttributes := dataPoint.Attributes()
-			v, b := dataPointAttributes.Get(JVM_MEMORY_POOL_NAME)
-			if b {
-				poolName := v.AsString()
-				// 获取池名映射
-				mappedName := dict[poolName]
-				if _, exists := data.MemoryPool.MemoryUsages[mappedName]; !exists {
-					// 初始化 MemoryUsage
-					data.MemoryPool.MemoryUsages[mappedName] = &MemoryUsage{}
-				}
-				// 根据字段填充数据
-				memoryUsage := data.MemoryPool.MemoryUsages[mappedName]
-				if metric.Name() == JVM_MEMORY_USED {
-					memoryUsage.Used = dataPoint.IntValue()
-				} else if metric.Name() == JVM_MEMORY_COMMITTED {
-					memoryUsage.Committed = dataPoint.IntValue()
-				} else if metric.Name() == JVM_MEMORY_LIMITI {
-					memoryUsage.Max = dataPoint.IntValue()
-				}
-			}
-		}
-	case JVM_GC_DURATION:
-		histogram := metric.Histogram()
-		dataPoints := histogram.DataPoints()
-		for i := 0; i < dataPoints.Len(); i++ {
-			dataPoint := dataPoints.At(i)
-			dataPointAttributes := dataPoint.Attributes()
-			name, b := dataPointAttributes.Get(JVM_GC_NAME)
-			if b {
-				garbageCollectorName := dict[name.AsString()]
-				if _, exists := data.GarbageCollector.GarbageCollectors[garbageCollectorName]; !exists {
-					// 初始化 GarbageCollectorInfo
-					data.GarbageCollector.GarbageCollectors[garbageCollectorName] = &GarbageCollectorInfo{}
-				}
-				garbageCollectorInfo := data.GarbageCollector.GarbageCollectors[garbageCollectorName]
-				garbageCollectorInfo.Name = garbageCollectorName
-				garbageCollectorInfo.CollectionCount = dataPoint.Count()
-				garbageCollectorInfo.CollectionTime = int(dataPoint.Sum() * 1000)
-			}
-		}
-	case JVM_THREAD_COUNT:
-		sum := metric.Sum()
-		dataPoints := sum.DataPoints()
-		var threadCount int64
-		var daemonThreadCount int64
-		for i := 0; i < dataPoints.Len(); i++ {
-			dataPoint := dataPoints.At(i)
-			currentThreadCount := dataPoint.IntValue()
-			threadCount += currentThreadCount
-			isDaemon, b := dataPoint.Attributes().Get(JVM_THREAD_DAEMON)
-			if b && isDaemon.Bool() {
-				daemonThreadCount += currentThreadCount
-			}
-		}
-		data.Thread.ThreadCount = threadCount
-		data.Thread.PeakThreadCount = threadCount
-		data.Thread.DeamonThreadCount = daemonThreadCount
-	}
-}
-
-func copeMetricV2(data *InternalData, metric pmetric.Metric) {
+func copeMetric(logMessage *InternalData, metric pmetric.Metric) {
 	// 确保 MemoryPool 和 GarbageCollector 的 maps 被初始化
-	if data.MemoryPool.MemoryUsages == nil {
-		data.MemoryPool.MemoryUsages = make(map[string]*MemoryUsage)
+	if logMessage.MemoryPool.MemoryUsages == nil {
+		logMessage.MemoryPool.MemoryUsages = make(map[string]*MemoryUsage)
 	}
-	if data.GarbageCollector.GarbageCollectors == nil {
-		data.GarbageCollector.GarbageCollectors = make(map[string]*GarbageCollectorInfo)
+	if logMessage.GarbageCollector.GarbageCollectors == nil {
+		logMessage.GarbageCollector.GarbageCollectors = make(map[string]*GarbageCollectorInfo)
 	}
 
 	switch metric.Name() {
@@ -326,13 +190,13 @@ func copeMetricV2(data *InternalData, metric pmetric.Metric) {
 					mappedName = poolName
 				}
 				// 确保内存池数据被初始化
-				if _, exists := data.MemoryPool.MemoryUsages[mappedName]; !exists {
-					data.MemoryPool.MemoryUsages[mappedName] = &MemoryUsage{
+				if _, exists := logMessage.MemoryPool.MemoryUsages[mappedName]; !exists {
+					logMessage.MemoryPool.MemoryUsages[mappedName] = &MemoryUsage{
 						Max: -1,
 					}
 				}
 				// 根据字段填充数据
-				memoryUsage := data.MemoryPool.MemoryUsages[mappedName]
+				memoryUsage := logMessage.MemoryPool.MemoryUsages[mappedName]
 				if metric.Name() == JVM_MEMORY_USED {
 					memoryUsage.Used = dataPoint.IntValue()
 				} else if metric.Name() == JVM_MEMORY_COMMITTED {
@@ -356,10 +220,10 @@ func copeMetricV2(data *InternalData, metric pmetric.Metric) {
 					garbageCollectorName = name.AsString()
 				}
 				// 确保垃圾收集器数据被初始化
-				if _, exists := data.GarbageCollector.GarbageCollectors[garbageCollectorName]; !exists {
-					data.GarbageCollector.GarbageCollectors[garbageCollectorName] = &GarbageCollectorInfo{}
+				if _, exists := logMessage.GarbageCollector.GarbageCollectors[garbageCollectorName]; !exists {
+					logMessage.GarbageCollector.GarbageCollectors[garbageCollectorName] = &GarbageCollectorInfo{}
 				}
-				garbageCollectorInfo := data.GarbageCollector.GarbageCollectors[garbageCollectorName]
+				garbageCollectorInfo := logMessage.GarbageCollector.GarbageCollectors[garbageCollectorName]
 				garbageCollectorInfo.Name = garbageCollectorName
 				garbageCollectorInfo.CollectionCount = dataPoint.Count()
 				garbageCollectorInfo.CollectionTime = int(dataPoint.Sum() * 1000)
@@ -379,8 +243,8 @@ func copeMetricV2(data *InternalData, metric pmetric.Metric) {
 				daemonThreadCount += currentThreadCount
 			}
 		}
-		data.Thread.ThreadCount = threadCount
-		data.Thread.PeakThreadCount = threadCount
-		data.Thread.DeamonThreadCount = daemonThreadCount
+		logMessage.Thread.ThreadCount = threadCount
+		logMessage.Thread.PeakThreadCount = threadCount
+		logMessage.Thread.DeamonThreadCount = daemonThreadCount
 	}
 }
