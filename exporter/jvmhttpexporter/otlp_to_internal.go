@@ -125,13 +125,7 @@ const (
 )
 
 func metricTransform(ctx context.Context, md pmetric.Metrics) ([]byte, error) {
-	data := &Data{}
-	data.LogType = "JavaManagementData"
-	data.MasterIp = "110.011.178.231,127.0.0.1"
-	data.LogMessage = LogMessage{}
-	logMessage := &data.LogMessage
-	logMessage.jManagementMessage = JManagementMessage{}
-	jManagementMessage := &logMessage.jManagementMessage
+	jManagementMessage := JManagementMessage{}
 	resourceMetrics := md.ResourceMetrics()
 	rmsLen := resourceMetrics.Len()
 	for i := 0; i < rmsLen; i++ {
@@ -157,12 +151,19 @@ func metricTransform(ctx context.Context, md pmetric.Metrics) ([]byte, error) {
 				msLen := metrics.Len()
 				for i := 0; i < msLen; i++ {
 					metric := metrics.At(i)
-					copeMetric(jManagementMessage, metric)
+					copeMetric(&jManagementMessage, metric)
 				}
 			}
 		}
 	}
-	fmt.Println(data)
+	data := &Data{
+		LogMessage: LogMessage{
+			jManagementMessage: jManagementMessage,
+			apmLang:            dict["apm-lang"],
+		},
+		LogType:  "JavaManagementData",
+		MasterIp: "110.011.178.231,127.0.0.1",
+	}
 	// 将结构体转换为 JSON 字节数组
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {
