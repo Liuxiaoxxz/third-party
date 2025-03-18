@@ -111,22 +111,10 @@ func (e *baseExporter) pushTraces(ctx context.Context, td ptrace.Traces) error {
 }
 
 func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
-	tr := pmetricotlp.NewExportRequestFromMetrics(md)
 	var err error
-	var request []byte
-	switch e.config.Encoding {
-	case EncodingJSON:
-		request, err = tr.MarshalJSON()
-	case EncodingProto:
-		request, err = tr.MarshalProto()
-	default:
-		err = fmt.Errorf("invalid encoding: %s", e.config.Encoding)
-	}
 	// TODO 实现otlp格式的转化
 	request_bck, err := metricTransform(ctx, md)
 	e.logger.Info("JVM HTTP exporter metric transform request successfully started, request Body: " + string(request_bck))
-	requestCopy := string(request)
-	e.logger.Info("Request Body: " + requestCopy)
 	if err != nil {
 		return consumererror.NewPermanent(err)
 	}

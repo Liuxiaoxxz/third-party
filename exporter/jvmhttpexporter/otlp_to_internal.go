@@ -3,7 +3,6 @@ package jvmhttpexporter
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"strings"
 )
@@ -156,22 +155,19 @@ func metricTransform(ctx context.Context, md pmetric.Metrics) ([]byte, error) {
 			}
 		}
 	}
-	data := &Data{
-		LogMessage: LogMessage{
-			jManagementMessage: jManagementMessage,
-			apmLang:            dict["apm-lang"],
-		},
-		LogType:  "JavaManagementData",
-		MasterIp: "110.011.178.231,127.0.0.1",
-	}
+	//data := &Data{
+	//	LogMessage: LogMessage{
+	//		jManagementMessage: jManagementMessage,
+	//		apmLang:            dict["apm-lang"],
+	//	},
+	//	LogType:  "JavaManagementData",
+	//	MasterIp: "110.011.178.231,127.0.0.1",
+	//}
 	// 将结构体转换为 JSON 字节数组
-	jsonBytes, err := json.Marshal(data)
+	jsonBytes, err := json.Marshal(jManagementMessage)
 	if err != nil {
 		panic(err) // 处理序列化错误（如不可导出的字段）
 	}
-
-	fmt.Println(string(jsonBytes))
-	// 输出: {"name":"Alice","age":30}
 
 	return jsonBytes, nil
 }
