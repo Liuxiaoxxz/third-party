@@ -8,14 +8,14 @@ import (
 )
 
 type Data struct {
-	LogMessage LogMessage `json:"logMessage"`
-	LogType    string     `json:"logType"`
-	MasterIp   string     `json:"masterIp"`
+	LogMessage *LogMessage `json:"logMessage"`
+	LogType    string      `json:"logType"`
+	MasterIp   string      `json:"masterIp"`
 }
 
 type LogMessage struct {
-	jManagementMessage JManagementMessage `json:"jManagementMessage"`
-	apmLang            string             `json:"apm-lang"`
+	jManagementMessage *JManagementMessage `json:"jManagementMessage"`
+	apmLang            string              `json:"apm-lang"`
 }
 
 // 内部格式的数据结构
@@ -156,8 +156,8 @@ func metricTransform(ctx context.Context, md pmetric.Metrics) ([]byte, error) {
 		}
 	}
 	data := &Data{
-		LogMessage: LogMessage{
-			jManagementMessage: jManagementMessage,
+		LogMessage: &LogMessage{
+			jManagementMessage: &jManagementMessage,
 			apmLang:            "hello-world!",
 		},
 		LogType:  "JavaManagementData",
