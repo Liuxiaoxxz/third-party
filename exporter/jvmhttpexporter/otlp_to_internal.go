@@ -162,6 +162,7 @@ func metricTransform(ctx context.Context, md pmetric.Metrics) ([]byte, error) {
 			}
 		}
 	}
+	fmt.Println(data)
 	// 将结构体转换为 JSON 字节数组
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {
