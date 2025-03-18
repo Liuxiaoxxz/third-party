@@ -14,8 +14,8 @@ type Data struct {
 }
 
 type LogMessage struct {
-	jManagementMessage *JManagementMessage `json:"jManagementMessage"`
-	apmLang            string              `json:"apm-lang"`
+	JManagementMessage *JManagementMessage `json:"jManagementMessage"`
+	ApmLang            string              `json:"apm-lang"`
 }
 
 // 内部格式的数据结构
@@ -157,8 +157,8 @@ func metricTransform(ctx context.Context, md pmetric.Metrics) ([]byte, error) {
 	}
 	data := &Data{
 		LogMessage: &LogMessage{
-			jManagementMessage: &jManagementMessage,
-			apmLang:            "hello-world!",
+			JManagementMessage: &jManagementMessage,
+			ApmLang:            "hello-world!",
 		},
 		LogType:  "JavaManagementData",
 		MasterIp: "110.011.178.231,127.0.0.1",
