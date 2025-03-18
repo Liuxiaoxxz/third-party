@@ -9,14 +9,14 @@ import (
 )
 
 type Data struct {
-	LogMessage LogMessage `json:"logMessage"`
-	LogType    string     `json:"logType"`
-	MasterIp   string     `json:"masterIp"`
+	LogMessage *LogMessage `json:"logMessage"`
+	LogType    string      `json:"logType"`
+	MasterIp   string      `json:"masterIp"`
 }
 
 type LogMessage struct {
-	jManagementMessage JManagementMessage `json:"jManagementMessage"`
-	apmLang            string             `json:"apm-lang"`
+	jManagementMessage *JManagementMessage `json:"jManagementMessage"`
+	apmLang            string              `json:"apm-lang"`
 }
 
 // 内部格式的数据结构
@@ -128,10 +128,10 @@ func metricTransform(ctx context.Context, md pmetric.Metrics) ([]byte, error) {
 	data := &Data{}
 	data.LogType = "JavaManagementData"
 	data.MasterIp = "110.011.178.231,127.0.0.1"
-	data.LogMessage = LogMessage{}
-	logMessage := &data.LogMessage
-	logMessage.jManagementMessage = JManagementMessage{}
-	jManagementMessage := &logMessage.jManagementMessage
+	data.LogMessage = &LogMessage{}
+	logMessage := data.LogMessage
+	logMessage.jManagementMessage = &JManagementMessage{}
+	jManagementMessage := logMessage.jManagementMessage
 	resourceMetrics := md.ResourceMetrics()
 	rmsLen := resourceMetrics.Len()
 	for i := 0; i < rmsLen; i++ {
