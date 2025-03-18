@@ -16,7 +16,6 @@ import (
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/prometheus/client_golang/prometheus/push"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.opentelemetry.io/collector/exporter"
@@ -134,17 +133,6 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 	return e.export(ctx, e.metricsURL, request_bck, e.metricsPartialSuccessHandler)
 }
 
-func (e *baseExporter) pushToPrometheus(md pmetric.Metrics) error {
-	pusher := push.New("http://localhost:9091", "otel_metrics")
-	//pusher.
-	// **推送到 Prometheus**
-	err := pusher.Push()
-	if err != nil {
-		return fmt.Errorf("failed to push metrics to Prometheus: %w", err)
-	}
-	e.logger.Info("Metrics successfully pushed to Prometheus")
-	return nil
-}
 func (e *baseExporter) pushLogs(ctx context.Context, ld plog.Logs) error {
 	tr := plogotlp.NewExportRequestFromLogs(ld)
 
@@ -189,7 +177,7 @@ func (e *baseExporter) pushProfiles(ctx context.Context, td pprofile.Profiles) e
 
 func (e *baseExporter) export(ctx context.Context, url string, request []byte, partialSuccessHandler partialSuccessHandler) error {
 	e.logger.Debug("Preparing to make HTTP request", zap.String("url", url))
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://127.0.0.1:8080/", bytes.NewReader(request))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(request))
 	if err != nil {
 		return consumererror.NewPermanent(err)
 	}
