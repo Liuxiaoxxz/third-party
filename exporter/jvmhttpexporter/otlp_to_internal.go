@@ -9,13 +9,18 @@ import (
 )
 
 type Data struct {
-	LogMessage InternalData `json:"logMessage"`
-	LogType    string       `json:"logType"`
-	MasterIp   string       `json:"masterIp"`
+	LogMessage LogMessage `json:"logMessage"`
+	LogType    string     `json:"logType"`
+	MasterIp   string     `json:"masterIp"`
+}
+
+type LogMessage struct {
+	jManagementMessage JManagementMessage `json:"jManagementMessage"`
+	apmLang            string             `json:"apm-lang"`
 }
 
 // 内部格式的数据结构
-type InternalData struct {
+type JManagementMessage struct {
 	BufferPool struct {
 		Mapped struct {
 			Count    int `json:"count"`
@@ -122,9 +127,11 @@ const (
 func metricTransform(ctx context.Context, md pmetric.Metrics) ([]byte, error) {
 	data := &Data{}
 	data.LogType = "JavaManagementData"
-	data.LogMessage = InternalData{}
+	data.MasterIp = "110.011.178.231,127.0.0.1"
+	data.LogMessage = LogMessage{}
 	logMessage := &data.LogMessage
-	//logMessage.LogType = "JavaManagementData"
+	logMessage.jManagementMessage = JManagementMessage{}
+	jManagementMessage := &logMessage.jManagementMessage
 	resourceMetrics := md.ResourceMetrics()
 	rmsLen := resourceMetrics.Len()
 	for i := 0; i < rmsLen; i++ {
@@ -132,12 +139,14 @@ func metricTransform(ctx context.Context, md pmetric.Metrics) ([]byte, error) {
 		resource := resourceMetric.Resource()
 		resourceAttributes := resource.Attributes()
 		if appname, b := resourceAttributes.Get("service.name"); b == true {
-			logMessage.AppName = appname.AsString()
+			jManagementMessage.AppName = appname.AsString()
 		}
 		if pid, b := resourceAttributes.Get("process.pid"); b == true {
-			logMessage.Pid = string(pid.Int())
+			jManagementMessage.Pid = string(pid.Int())
 		}
-
+		//mock的假数据
+		jManagementMessage.AgentId = "bookdemo-bookdemo-746cc6d5f4-qmgsb-7d6e2b43-5c8e-49ba-8852-40a7fd8c0e8f-bookdemo-org.apache.catalina.startup.Bootstrap-1@192.168.136.105:8080"
+		jManagementMessage.MultiAgentId = "bookdemo-bookdemo-746cc6d5f4-qmgsb-7d6e2b43-5c8e-49ba-8852-40a7fd8c0e8f-bookdemo-org.apache.catalina.startup.Bootstrap-1@192.168.136.105:8080%bookdemo-bookdemo-746cc6d5f4-qmgsb-7d6e2b43-5c8e-49ba-8852-40a7fd8c0e8f-bookdemo-org.apache.catalina.startup.Bootstrap-1@192.168.136.105:40195%bookdemo-bookdemo-746cc6d5f4-qmgsb-7d6e2b43-5c8e-49ba-8852-40a7fd8c0e8f-bookdemo-org.apache.catalina.startup.Bootstrap-1@192.168.136.105:36373"
 		scopeMetrics := resourceMetric.ScopeMetrics()
 		smsLen := scopeMetrics.Len()
 		for i := 0; i < smsLen; i++ {
@@ -148,7 +157,7 @@ func metricTransform(ctx context.Context, md pmetric.Metrics) ([]byte, error) {
 				msLen := metrics.Len()
 				for i := 0; i < msLen; i++ {
 					metric := metrics.At(i)
-					copeMetric(logMessage, metric)
+					copeMetric(jManagementMessage, metric)
 				}
 			}
 		}
@@ -165,13 +174,13 @@ func metricTransform(ctx context.Context, md pmetric.Metrics) ([]byte, error) {
 	return jsonBytes, nil
 }
 
-func copeMetric(logMessage *InternalData, metric pmetric.Metric) {
+func copeMetric(jManagementMessage *JManagementMessage, metric pmetric.Metric) {
 	// 确保 MemoryPool 和 GarbageCollector 的 maps 被初始化
-	if logMessage.MemoryPool.MemoryUsages == nil {
-		logMessage.MemoryPool.MemoryUsages = make(map[string]*MemoryUsage)
+	if jManagementMessage.MemoryPool.MemoryUsages == nil {
+		jManagementMessage.MemoryPool.MemoryUsages = make(map[string]*MemoryUsage)
 	}
-	if logMessage.GarbageCollector.GarbageCollectors == nil {
-		logMessage.GarbageCollector.GarbageCollectors = make(map[string]*GarbageCollectorInfo)
+	if jManagementMessage.GarbageCollector.GarbageCollectors == nil {
+		jManagementMessage.GarbageCollector.GarbageCollectors = make(map[string]*GarbageCollectorInfo)
 	}
 
 	switch metric.Name() {
@@ -190,13 +199,13 @@ func copeMetric(logMessage *InternalData, metric pmetric.Metric) {
 					mappedName = poolName
 				}
 				// 确保内存池数据被初始化
-				if _, exists := logMessage.MemoryPool.MemoryUsages[mappedName]; !exists {
-					logMessage.MemoryPool.MemoryUsages[mappedName] = &MemoryUsage{
+				if _, exists := jManagementMessage.MemoryPool.MemoryUsages[mappedName]; !exists {
+					jManagementMessage.MemoryPool.MemoryUsages[mappedName] = &MemoryUsage{
 						Max: -1,
 					}
 				}
 				// 根据字段填充数据
-				memoryUsage := logMessage.MemoryPool.MemoryUsages[mappedName]
+				memoryUsage := jManagementMessage.MemoryPool.MemoryUsages[mappedName]
 				if metric.Name() == JVM_MEMORY_USED {
 					memoryUsage.Used = dataPoint.IntValue()
 				} else if metric.Name() == JVM_MEMORY_COMMITTED {
@@ -220,10 +229,10 @@ func copeMetric(logMessage *InternalData, metric pmetric.Metric) {
 					garbageCollectorName = name.AsString()
 				}
 				// 确保垃圾收集器数据被初始化
-				if _, exists := logMessage.GarbageCollector.GarbageCollectors[garbageCollectorName]; !exists {
-					logMessage.GarbageCollector.GarbageCollectors[garbageCollectorName] = &GarbageCollectorInfo{}
+				if _, exists := jManagementMessage.GarbageCollector.GarbageCollectors[garbageCollectorName]; !exists {
+					jManagementMessage.GarbageCollector.GarbageCollectors[garbageCollectorName] = &GarbageCollectorInfo{}
 				}
-				garbageCollectorInfo := logMessage.GarbageCollector.GarbageCollectors[garbageCollectorName]
+				garbageCollectorInfo := jManagementMessage.GarbageCollector.GarbageCollectors[garbageCollectorName]
 				garbageCollectorInfo.Name = garbageCollectorName
 				garbageCollectorInfo.CollectionCount = dataPoint.Count()
 				garbageCollectorInfo.CollectionTime = int(dataPoint.Sum() * 1000)
@@ -243,8 +252,8 @@ func copeMetric(logMessage *InternalData, metric pmetric.Metric) {
 				daemonThreadCount += currentThreadCount
 			}
 		}
-		logMessage.Thread.ThreadCount = threadCount
-		logMessage.Thread.PeakThreadCount = threadCount
-		logMessage.Thread.DeamonThreadCount = daemonThreadCount
+		jManagementMessage.Thread.ThreadCount = threadCount
+		jManagementMessage.Thread.PeakThreadCount = threadCount
+		jManagementMessage.Thread.DeamonThreadCount = daemonThreadCount
 	}
 }
