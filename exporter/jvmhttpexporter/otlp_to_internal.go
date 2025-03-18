@@ -155,16 +155,16 @@ func metricTransform(ctx context.Context, md pmetric.Metrics) ([]byte, error) {
 			}
 		}
 	}
-	//data := &Data{
-	//	LogMessage: LogMessage{
-	//		jManagementMessage: jManagementMessage,
-	//		apmLang:            dict["apm-lang"],
-	//	},
-	//	LogType:  "JavaManagementData",
-	//	MasterIp: "110.011.178.231,127.0.0.1",
-	//}
+	data := &Data{
+		LogMessage: LogMessage{
+			jManagementMessage: jManagementMessage,
+			apmLang:            "hello-world!",
+		},
+		LogType:  "JavaManagementData",
+		MasterIp: "110.011.178.231,127.0.0.1",
+	}
 	// 将结构体转换为 JSON 字节数组
-	jsonBytes, err := json.Marshal(jManagementMessage)
+	jsonBytes, err := json.Marshal(data)
 	if err != nil {
 		panic(err) // 处理序列化错误（如不可导出的字段）
 	}
