@@ -120,7 +120,7 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 	//}
 	//return e.export(ctx, e.metricsURL, request_bck, e.metricsPartialSuccessHandler)
 
-	e.logger.Info("received a metric:{}")
+	e.logger.Info("received a metric:{}" + md.ResourceMetrics().At(0).ScopeMetrics().At(0).Scope().Name())
 	return nil
 }
 
