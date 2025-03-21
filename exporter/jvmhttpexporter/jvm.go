@@ -111,14 +111,17 @@ func (e *baseExporter) pushTraces(ctx context.Context, td ptrace.Traces) error {
 }
 
 func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
-	var err error
-	// TODO 实现otlp格式的转化
-	request_bck, err := metricTransform(ctx, md)
-	e.logger.Info("JVM HTTP exporter metric transform request successfully started, request Body: " + string(request_bck))
-	if err != nil {
-		return consumererror.NewPermanent(err)
-	}
-	return e.export(ctx, e.metricsURL, request_bck, e.metricsPartialSuccessHandler)
+	//var err error
+	//// TODO 实现otlp格式的转化
+	//request_bck, err := metricTransform(ctx, md)
+	//e.logger.Info("JVM HTTP exporter metric transform request successfully started, request Body: " + string(request_bck))
+	//if err != nil {
+	//	return consumererror.NewPermanent(err)
+	//}
+	//return e.export(ctx, e.metricsURL, request_bck, e.metricsPartialSuccessHandler)
+
+	e.logger.Info("received a metric:{}")
+	return nil
 }
 
 func (e *baseExporter) pushLogs(ctx context.Context, ld plog.Logs) error {
